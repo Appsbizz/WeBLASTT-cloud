@@ -1,20 +1,23 @@
 const express = require('express');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const puppeteer = require('puppeteer');
+
 const app = express();
 app.use(express.json());
 
 app.post('/blast', handleBlast);
 
 app.listen(process.env.PORT || 3000, () => {
-  console.log('🚀 blastServer running on port 3000');
+  console.log('🚀 WeBLAST server running and ready to accept payloads');
 });
-
 
 async function handleBlast(req, res) {
   try {
     const contacts = JSON.parse(req.body.recipientData);
     const templateTxt = req.body.templateText;
 
-    // ⛏ Parse templates
+    // Parse templates from raw text
     const templates = {};
     const regex = /=== TEMPLATE: ([^\n]+) ===\n([\s\S]*?)\n=== END TEMPLATE ===/g;
     let match;
@@ -22,7 +25,6 @@ async function handleBlast(req, res) {
       templates[match[1]] = match[2].trim();
     }
 
-    // 🔑 Setup WhatsApp client
     const client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
@@ -40,7 +42,7 @@ async function handleBlast(req, res) {
     });
 
     client.on('ready', async () => {
-      console.log('✅ WhatsApp ready. Starting blast…\n');
+      console.log('✅ WhatsApp ready. Starting WeBLAST…\n');
       await new Promise(r => setTimeout(r, 3000));
 
       for (let r of contacts.recipients) {
@@ -84,20 +86,21 @@ async function handleBlast(req, res) {
 
           report.push(logEntry);
         } catch (e) {
-          logEntry.details += `Error: ${e.message}`;
+          logEntry.details += ` Error: ${e.message}`;
           report.push(logEntry);
         }
 
         await new Promise(r => setTimeout(r, 2000));
       }
 
-      console.log('\n🎉 Blast complete. Closing session.\n');
+      console.log('\n🎉 All messages sent. Closing session.');
       await client.destroy();
       res.status(200).json({ status: 'Blast complete', report });
     });
 
     client.initialize();
   } catch (e) {
+    console.error('❌ Blast failed:', e.message);
     res.status(500).json({ error: e.message });
   }
 }
