@@ -1,7 +1,7 @@
 {
   "name": "weblast",
   "version": "1.0.0",
-  "description": "WhatsApp blast server using Express, Puppeteer, and payloads from Google Apps Script",
+  "description": "WhatsApp blast server using Express, payloads from Apps Script, and Render's official Chrome setup",
   "main": "blastServer.js",
   "scripts": {
     "start": "node blastServer.js",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "puppeteer": "^22.7.0",
+    "@puppeteer/browsers": "^1.1.0",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.21.0"
   }
