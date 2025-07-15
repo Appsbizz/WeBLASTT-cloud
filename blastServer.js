@@ -3,6 +3,9 @@ const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const puppeteer = require('puppeteer');
 
+// 🧩 Force Puppeteer to use Render-safe cache directory
+process.env.PUPPETEER_CACHE_DIR = '/opt/render/.cache/puppeteer';
+
 const app = express();
 app.use(express.json());
 
