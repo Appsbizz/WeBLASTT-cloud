@@ -5,7 +5,7 @@
   "main": "blastServer.js",
   "scripts": {
     "start": "node blastServer.js",
-    "postinstall": "npx puppeteer browsers install chrome"
+    "postinstall": "puppeteer install"
   },
   "dependencies": {
     "express": "^4.18.2",
