@@ -17,8 +17,11 @@ app.listen(process.env.PORT || 3000, () => {
 
 async function handleBlast(req, res) {
   try {
+    console.log("📬 Blast request received");
+
     const contacts = JSON.parse(req.body.recipientData);
     const templateTxt = req.body.templateText;
+    console.log(`🔧 ${contacts.recipients.length} recipients loaded`);
 
     // Parse templates from raw text
     const templates = {};
