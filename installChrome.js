@@ -1,4 +1,3 @@
-// scripts/installChrome.js
 const { install } = require('@puppeteer/browsers');
 
 install({
