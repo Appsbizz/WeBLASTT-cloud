@@ -1,10 +1,11 @@
 {
-  "name": "weblast-cloud",
+  "name": "weblast",
   "version": "1.0.0",
   "description": "WhatsApp blast server using Express, Puppeteer, and payloads from Google Apps Script",
   "main": "blastServer.js",
   "scripts": {
-    "start": "node blastServer.js"
+    "start": "node blastServer.js",
+    "postinstall": "puppeteer install"
   },
   "dependencies": {
     "express": "^4.18.2",
