@@ -1,6 +1,5 @@
 // ─── Chrome Bootstrap & Path Discovery ───────────────────────────────────────
-const pptrBrowsers = require('@puppeteer/browsers');
-const puppeteer   = require('puppeteer');
+const { install, executablePath } = require('@puppeteer/browsers');
 
 const cacheDir = process.env.PUPPETEER_CACHE_DIR || '/opt/render/.cache/puppeteer';
 const buildId  = '127.0.6533.88';
@@ -8,15 +7,17 @@ const buildId  = '127.0.6533.88';
 ;(async () => {
   console.log(`🔄 Installing Chrome build ${buildId}…`);
   try {
-    await pptrBrowsers.install({ browser: 'chrome', buildId, cacheDir });
+    // Download the exact Chrome you need
+    await install({ browser: 'chrome', buildId, cacheDir });
     console.log('✅ Chrome installed');
 
-    const chromeExe = process.env.PUPPETEER_EXECUTABLE_PATH
-      || puppeteer.executablePath();
-    console.log('🔍 Using Chrome at', chromeExe);
+    // Grab the executable path straight from @puppeteer/browsers
+    const chromePath = process.env.PUPPETEER_EXECUTABLE_PATH
+      || executablePath({ browser: 'chrome', buildId, cacheDir });
+    console.log('🔍 Using Chrome at', chromePath);
 
-    // launch server once Chrome is ready
-    startServer(chromeExe);
+    // Now start your server with that path
+    startServer(chromePath);
   } catch (err) {
     console.error('❌ Chrome installation failed:', err.message);
     process.exit(1);
@@ -25,21 +26,21 @@ const buildId  = '127.0.6533.88';
 // ────────────────────────────────────────────────────────────────────────────────
 
 function startServer(chromePath) {
-  const express    = require('express');
-  const qrcode     = require('qrcode-terminal');
+  const express = require('express');
+  const qrcode  = require('qrcode-terminal');
   const { Client, LocalAuth } = require('whatsapp-web.js');
 
   const app = express();
   app.use(express.json());
 
-  // simple health check
+  // Health check
   app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
-  // main blast endpoint
+  // Blast endpoint
   app.post('/blast', (req, res) => {
     console.log('📬 Blast request received');
 
-    let recipients = [];
+    let recipients;
     try {
       const payload = typeof req.body.recipientData === 'string'
         ? JSON.parse(req.body.recipientData)
@@ -72,8 +73,8 @@ function startServer(chromePath) {
 
       for (const { number, fields } of recipients) {
         let msg = req.body.templateText;
-        for (const key in fields) {
-          msg = msg.replace(new RegExp(`{{${key}}}`, 'g'), fields[key]);
+        for (const k in fields) {
+          msg = msg.replace(new RegExp(`{{${k}}}`, 'g'), fields[k]);
         }
         try {
           await client.sendMessage(number, msg);
