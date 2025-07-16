@@ -1,6 +1,7 @@
 {
   "name": "weblast",
   "version": "1.0.0",
+  "description": "WhatsApp blast server using Express, payloads from Apps Script, and Chrome 127 for Render",
   "main": "blastServer.js",
   "scripts": {
     "start": "node blastServer.js"
