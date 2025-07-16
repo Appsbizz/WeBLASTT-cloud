@@ -5,8 +5,8 @@
   "main": "blastServer.js",
   "scripts": {
     "start": "node blastServer.js",
-     "postinstall": "node -e \"require('@puppeteer/browsers').install({ browser: 'chrome', buildId: '127.0.6533.88', cacheDir: process.env.PUPPETEER_CACHE_DIR }).then(() => console.log('✅ Chrome installed')).catch(e => { console.error('❌ Chrome install failed', e.message); process.exit(1); });\""
-},
+    "postinstall": "node -e \"require('@puppeteer/browsers').install({ browser: 'chrome', buildId: '127.0.6533.88', cacheDir: process.env.PUPPETEER_CACHE_DIR || '/opt/render/.cache/puppeteer' }).then(() => console.log('✅ Chrome installed')).catch(e => { console.error('❌ Chrome install failed', e.message); process.exit(1); });\""
+  },
   "dependencies": {
     "express": "^4.18.2",
     "puppeteer": "^21.7.0",
