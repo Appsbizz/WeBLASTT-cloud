@@ -1,40 +1,45 @@
-// ─── Bootstrap & Discover Chrome ───────────────────────────────────────────
-const { install, executablePath } = require('@puppeteer/browsers');
+// ─── Chrome Bootstrap & Path Discovery ───────────────────────────────────────
+const pptrBrowsers = require('@puppeteer/browsers');
+const puppeteer   = require('puppeteer');
 
 const cacheDir = process.env.PUPPETEER_CACHE_DIR || '/opt/render/.cache/puppeteer';
-const buildId = '127.0.6533.88';
+const buildId  = '127.0.6533.88';
 
 ;(async () => {
   console.log(`🔄 Installing Chrome build ${buildId}…`);
   try {
-    await install({ browser: 'chrome', buildId, cacheDir });
-    const chromeExe = executablePath({ browser: 'chrome', buildId, cacheDir });
-    console.log('✅ Chrome installed at', chromeExe);
+    await pptrBrowsers.install({ browser: 'chrome', buildId, cacheDir });
+    console.log('✅ Chrome installed');
 
-    // ─── Now that Chrome is ready, start your server ────────────────────────
+    const chromeExe = process.env.PUPPETEER_EXECUTABLE_PATH
+      || puppeteer.executablePath();
+    console.log('🔍 Using Chrome at', chromeExe);
+
+    // launch server once Chrome is ready
     startServer(chromeExe);
   } catch (err) {
     console.error('❌ Chrome installation failed:', err.message);
     process.exit(1);
   }
 })();
+// ────────────────────────────────────────────────────────────────────────────────
 
 function startServer(chromePath) {
-  const express = require('express');
-  const qrcode = require('qrcode-terminal');
+  const express    = require('express');
+  const qrcode     = require('qrcode-terminal');
   const { Client, LocalAuth } = require('whatsapp-web.js');
 
   const app = express();
   app.use(express.json());
 
-  // Health-check for uptime monitoring
+  // simple health check
   app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
-  // Main blast endpoint
+  // main blast endpoint
   app.post('/blast', (req, res) => {
     console.log('📬 Blast request received');
 
-    let recipients;
+    let recipients = [];
     try {
       const payload = typeof req.body.recipientData === 'string'
         ? JSON.parse(req.body.recipientData)
@@ -63,21 +68,26 @@ function startServer(chromePath) {
 
     client.on('ready', async () => {
       console.log('✅ WhatsApp ready. Starting WeBLAST…');
+      const report = [];
+
       for (const { number, fields } of recipients) {
-        let message = req.body.templateText;
-        for (const k in fields) {
-          message = message.replace(new RegExp(`{{${k}}}`, 'g'), fields[k]);
+        let msg = req.body.templateText;
+        for (const key in fields) {
+          msg = msg.replace(new RegExp(`{{${key}}}`, 'g'), fields[key]);
         }
         try {
-          await client.sendMessage(number, message);
+          await client.sendMessage(number, msg);
           console.log(`✉️ Sent to ${number}`);
+          report.push({ number, status: 'sent' });
         } catch (err) {
           console.error(`❌ Failed to ${number}:`, err.message);
+          report.push({ number, status: 'failed', error: err.message });
         }
       }
+
       console.log('🎉 All messages sent. Closing session.');
       await client.destroy();
-      res.json({ status: 'Blast complete', report: recipients.map(r => r.number) });
+      res.json({ status: 'Blast complete', report });
     });
 
     client.initialize();
